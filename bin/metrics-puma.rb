@@ -61,9 +61,35 @@ class PumaMetrics < Sensu::Plugin::Metric::CLI::Graphite
   end
 
   def run
-    puma_ctl.stats.map do |k, v|
-      output "#{config[:scheme]}.#{k}", v
+    timestamp = Time.now.to_i
+    stats = puma_ctl.stats
+    worker_status = stats.delete("worker_status")
+
+    if worker_status
+      stats = parse_worker_stats(stats, worker_status)
+    end
+    
+    stats.map do |k, v|
+      output "#{config[:scheme]}.#{k}", v, timestamp
     end
     ok
+  end
+
+  private
+  def parse_worker_stats(stats, worker_status)
+    backlog, running = 0, 0
+    worker_status.each do |worker|
+      idx = worker.delete("index")
+      last_status = worker.delete("last_status")
+      backlog += (worker["backlog"] = last_status["backlog"])
+      running += (worker["running"] = last_status["running"])
+      worker.map do |k, v|
+        stats["worker.#{idx}.#{k}"] = v
+      end
+    end
+
+    stats["backlog"] = backlog
+    stats["running"] = running
+    stats
   end
 end

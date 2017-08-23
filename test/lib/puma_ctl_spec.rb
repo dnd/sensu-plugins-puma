@@ -1,11 +1,11 @@
-require_relative './spec_helper'
-require_relative '../lib/sensu-plugins-puma/puma_ctl'
+require_relative '../spec_helper'
+require 'sensu-plugins-puma/puma_ctl'
 
 describe PumaCtl do
   subject(:puma_ctl) {PumaCtl.new(state_file: state_file_path, control_auth_token: control_auth_token, control_url: control_url)}
   let(:control_auth_token) {nil}
   let(:control_url) {nil}
-  let(:state_file_path) {File.join(File.dirname(__FILE__), "support/v#{version}.state")}
+  let(:state_file_path) {File.join(File.dirname(__FILE__), "../support/v#{version}.state")}
   let(:version) {nil}
 
   context 'configuration' do
@@ -41,5 +41,19 @@ describe PumaCtl do
     end
   end
 
+  describe "#stats" do
+
+    context 'with a TCP control url' do
+      it 'connects to the TCP socket'
+    end
+
+    context 'with a UNIX socket control url' do
+      it 'connects to the socket'
+    end
+
+    it 'sends the correct command to the control server'
+
+    it 'returns the JSON socket response as a hash'
+  end
 
 end
